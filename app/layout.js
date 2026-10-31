@@ -1,5 +1,6 @@
 import { Inter, Noto_Sans_Gujarati, Noto_Sans_Devanagari } from 'next/font/google';
 import './globals.css';
+import { AuthProvider } from '@/lib/auth-context';
 import { SettingsProvider } from '@/lib/settings-context';
 import Navbar from '@/components/Navbar';
 
@@ -47,35 +48,37 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.variable} ${notoGujarati.variable} ${notoDevanagari.variable}`}>
       <body className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased transition-colors selection:bg-indigo-500 selection:text-white">
-        <SettingsProvider>
-          <Navbar />
-          <main className="flex-1 flex flex-col">{children}</main>
-          <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-8 px-4 transition-colors">
-            <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
-              <div>
-                <div className="flex items-center justify-center md:justify-start gap-2">
-                  <span className="font-bold text-base bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
-                    Vidya Mitra
-                  </span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 font-gujarati">
-                    • વિદ્યા મિત્ર • विद्या मित्र
-                  </span>
+        <AuthProvider>
+          <SettingsProvider>
+            <Navbar />
+            <main className="flex-1 flex flex-col">{children}</main>
+            <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-8 px-4 transition-colors">
+              <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+                <div>
+                  <div className="flex items-center justify-center md:justify-start gap-2">
+                    <span className="font-bold text-base bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+                      Vidya Mitra
+                    </span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-gujarati">
+                      • વિદ્યા મિત્ર • विद्या मित्र
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Dedicated to engineering & IT students across Gujarat and India. Learn in your mother tongue.
+                  </p>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Dedicated to engineering & IT students across Gujarat and India. Learn in your mother tongue.
-                </p>
-              </div>
 
-              <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-slate-500 dark:text-slate-400">
-                <span>Powered by Google Gemini 2.5</span>
-                <span>•</span>
-                <span>Zero Server Storage</span>
-                <span>•</span>
-                <span>Vercel Ready</span>
+                <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-slate-500 dark:text-slate-400">
+                  <span>Powered by Google Gemini 2.5</span>
+                  <span>•</span>
+                  <span>Supabase Cloud Auth & DB</span>
+                  <span>•</span>
+                  <span>Vercel Ready</span>
+                </div>
               </div>
-            </div>
-          </footer>
-        </SettingsProvider>
+            </footer>
+          </SettingsProvider>
+        </AuthProvider>
       </body>
     </html>
   );

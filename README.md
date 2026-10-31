@@ -60,12 +60,18 @@ A complete, production-ready regional-language AI study assistant for Indian IT 
    copy .env.example .env.local
    ```
 
-3. Open `.env.local` and paste your Google Gemini API key:
+3. Open `.env.local` and paste your Google Gemini API key and Supabase credentials:
    ```env
    GEMINI_API_KEY=AIzaSy...your_actual_key_here
    MODEL_NAME=gemini-2.5-flash
+
+   # Supabase Multi-User Authentication & Database
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
    ```
-   *(Get your free key from [Google AI Studio](https://aistudio.google.com/))*
+   *(Get your free Gemini key from [Google AI Studio](https://aistudio.google.com/) and Supabase project from [Supabase](https://supabase.com))*.
+
+   *Database Setup*: Open the Supabase SQL Editor and execute the script in `supabase/schema.sql` to initialize user profiles, chat history, quiz history, and Row-Level Security (RLS).
 
 4. Start the local development server:
    ```powershell

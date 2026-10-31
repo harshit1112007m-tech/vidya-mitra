@@ -6,9 +6,11 @@ import SettingsBar from '@/components/SettingsBar';
 import Loader from '@/components/Loader';
 import Toast from '@/components/Toast';
 import { useSettings } from '@/lib/settings-context';
+import { useAuth } from '@/lib/auth-context';
 import { saveStoredQuizAttempt } from '@/lib/storage';
 
 export default function QuizPage() {
+  const { user } = useAuth();
   const { settings, currentLangInfo } = useSettings();
   const [topic, setTopic] = useState('');
   const [questionCount, setQuestionCount] = useState(5);
@@ -99,17 +101,20 @@ export default function QuizPage() {
     setScore(calculatedScore);
     setSubmitted(true);
 
-    // Save attempt to localStorage
-    saveStoredQuizAttempt({
-      id: 'quiz-' + Date.now(),
-      date: new Date().toISOString(),
-      subject: settings.subject,
-      topic: topic.trim(),
-      language: settings.language,
-      score: calculatedScore,
-      total,
-      percentage,
-    });
+    // Save attempt to user storage / Supabase
+    saveStoredQuizAttempt(
+      {
+        id: 'quiz-' + Date.now(),
+        date: new Date().toISOString(),
+        subject: settings.subject,
+        topic: topic.trim(),
+        language: settings.language,
+        score: calculatedScore,
+        total,
+        percentage,
+      },
+      user?.id || null
+    );
   };
 
   const handleResetQuiz = () => {

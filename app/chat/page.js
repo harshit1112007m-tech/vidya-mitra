@@ -6,7 +6,13 @@ import ChatBubble from '@/components/ChatBubble';
 import Loader from '@/components/Loader';
 import Toast from '@/components/Toast';
 import { useSettings } from '@/lib/settings-context';
-import { getStoredChatHistory, saveStoredChatHistory, clearStoredChatHistory } from '@/lib/storage';
+import { useAuth } from '@/lib/auth-context';
+import {
+  getStoredChatHistory,
+  saveStoredChatHistory,
+  clearStoredChatHistory,
+  syncChatMessageToSupabase,
+} from '@/lib/storage';
 
 const QUICK_PROMPTS = {
   DBMS: [
@@ -54,6 +60,7 @@ const QUICK_PROMPTS = {
 };
 
 export default function ChatPage() {
+  const { user } = useAuth();
   const { settings, currentLangInfo } = useSettings();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -64,9 +71,9 @@ export default function ChatPage() {
   const recognitionRef = useRef(null);
   const messagesEndRef = useRef(null);
 
-  // Load chat history from localStorage on mount
+  // Load chat history for active user on mount / user change
   useEffect(() => {
-    const history = getStoredChatHistory();
+    const history = getStoredChatHistory(user?.id);
     if (history && history.length > 0) {
       setMessages(history);
     } else {
@@ -84,7 +91,7 @@ You can also click on any suggestion below or use the microphone to ask your dou
       };
       setMessages([seedMessage]);
     }
-  }, []);
+  }, [user, settings.subject, currentLangInfo]);
 
   // Set up Web Speech API if supported
   useEffect(() => {
@@ -159,7 +166,8 @@ You can also click on any suggestion below or use the microphone to ask your dou
 
     const newHistory = [...messages, userMsg];
     setMessages(newHistory);
-    saveStoredChatHistory(newHistory);
+    saveStoredChatHistory(newHistory, user?.id);
+    syncChatMessageToSupabase(user?.id, { role: 'user', content: trimmed }, settings.language, settings.subject);
     setInput('');
     setLoading(true);
 
@@ -197,7 +205,8 @@ You can also click on any suggestion below or use the microphone to ask your dou
 
       const finalHistory = [...newHistory, botMsg];
       setMessages(finalHistory);
-      saveStoredChatHistory(finalHistory);
+      saveStoredChatHistory(finalHistory, user?.id);
+      syncChatMessageToSupabase(user?.id, { role: 'assistant', content: data.reply }, settings.language, settings.subject);
     } catch (err) {
       console.error('[ChatPage] Error:', err);
       setError(err.message || 'Something went wrong while connecting to Vidya Mitra.');
@@ -206,9 +215,9 @@ You can also click on any suggestion below or use the microphone to ask your dou
     }
   };
 
-  const handleClearChat = () => {
+  const handleClearChat = async () => {
     if (window.confirm('Are you sure you want to clear your chat history?')) {
-      clearStoredChatHistory();
+      await clearStoredChatHistory(user?.id);
       setMessages([]);
     }
   };

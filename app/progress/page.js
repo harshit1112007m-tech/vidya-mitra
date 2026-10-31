@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import SettingsBar from '@/components/SettingsBar';
-import { getStoredQuizHistory, clearStoredQuizHistory } from '@/lib/storage';
+import { useAuth } from '@/lib/auth-context';
+import { fetchRemoteQuizHistory, clearStoredQuizHistory } from '@/lib/storage';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -32,17 +33,28 @@ ChartJS.register(
 );
 
 export default function ProgressPage() {
+  const { user } = useAuth();
   const [history, setHistory] = useState([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setHistory(getStoredQuizHistory());
-    setMounted(true);
-  }, []);
+    let active = true;
+    async function load() {
+      const records = await fetchRemoteQuizHistory(user?.id || null);
+      if (active) {
+        setHistory(records || []);
+        setMounted(true);
+      }
+    }
+    load();
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
-  const handleClear = () => {
+  const handleClear = async () => {
     if (window.confirm('Are you sure you want to clear your quiz progress and attempt history?')) {
-      clearStoredQuizHistory();
+      await clearStoredQuizHistory(user?.id || null);
       setHistory([]);
     }
   };
@@ -207,6 +219,19 @@ export default function ProgressPage() {
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
               Track your quiz performance, subject mastery, and historical test attempts.
             </p>
+            {user ? (
+              <div className="mt-2.5 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800 text-xs text-indigo-700 dark:text-indigo-300">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Personal account progress for <strong>{user.email}</strong></span>
+              </div>
+            ) : (
+              <div className="mt-2.5 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300">
+                <span>Guest mode: records saved locally in this browser.</span>
+                <Link href="/login?redirect=/progress" className="font-bold underline hover:text-amber-950 dark:hover:text-amber-100">
+                  Log in to sync with cloud →
+                </Link>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
