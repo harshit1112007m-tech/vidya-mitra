@@ -24,8 +24,18 @@ function CallbackContent() {
       return;
     }
 
-    // Check for OAuth error parameters in query
-    const errorParam = searchParams.get('error_description') || searchParams.get('error');
+    // Check for OAuth error parameters in query or hash
+    let hashError = null;
+    if (typeof window !== 'undefined' && window.location.hash) {
+      try {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        hashError = hashParams.get('error_description') || hashParams.get('error');
+      } catch (e) {
+        // ignore
+      }
+    }
+    const errorParam =
+      searchParams.get('error_description') || searchParams.get('error') || hashError;
     if (errorParam) {
       setErrorMsg(decodeURIComponent(errorParam));
       const timer = setTimeout(() => router.replace('/login'), 2500);

@@ -39,9 +39,19 @@ function LoginForm() {
     }
   }, [user, router, redirectPath]);
 
-  // Check for error parameters passed from OAuth callbacks
+  // Check for error parameters passed from OAuth callbacks (both query & hash)
   useEffect(() => {
-    const errorParam = searchParams.get('error_description') || searchParams.get('error');
+    let hashError = null;
+    if (typeof window !== 'undefined' && window.location.hash) {
+      try {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        hashError = hashParams.get('error_description') || hashParams.get('error');
+      } catch (e) {
+        // ignore hash parse errors
+      }
+    }
+    const errorParam =
+      searchParams.get('error_description') || searchParams.get('error') || hashError;
     if (errorParam) {
       setErrorMsg(decodeURIComponent(errorParam));
     }
@@ -54,8 +64,11 @@ function LoginForm() {
 
     try {
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      // Only append redirect query param if destination is not the default home page
       const callbackUrl = origin
-        ? `${origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`
+        ? redirectPath && redirectPath !== '/'
+          ? `${origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`
+          : `${origin}/auth/callback`
         : undefined;
 
       const { data, error } = await signInWithGoogle(callbackUrl);
